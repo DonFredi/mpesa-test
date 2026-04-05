@@ -38,7 +38,7 @@ export async function paybillPayment({
       PartyA: phoneNumber,
       PartyB: mpesa.shortcode,
       PhoneNumber: phoneNumber,
-      CallBackURL: `${mpesa.callbackBaseUrl}/stk-callback`,
+      CallBackURL: `${process.env.BASE_URL}/api/mpesa/webhook`,
       AccountReference: accountReference,
       TransactionDesc: "Paybill payment",
     },

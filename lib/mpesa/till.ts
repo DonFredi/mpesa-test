@@ -5,7 +5,7 @@ import { normalizePhone, generatePassword, generateTimestamp } from "./utils";
 export async function tillPayment({ amount, phone, mpesa }: { amount: number; phone: string; mpesa: any }) {
   const phoneNumber = normalizePhone(phone);
   const timestamp = generateTimestamp();
-  const password = generatePassword(mpesa.shortcode, mpesa.passkey, timestamp);
+  const password = generatePassword(mpesa.tillNumber, mpesa.passkey, timestamp);
 
   const token = await getAccessToken(mpesa.consumerKey, mpesa.consumerSecret, mpesa.environment);
 
@@ -23,7 +23,7 @@ export async function tillPayment({ amount, phone, mpesa }: { amount: number; ph
       PartyA: phoneNumber,
       PartyB: mpesa.tillNumber,
       PhoneNumber: phoneNumber,
-      CallBackURL: `${mpesa.callbackBaseUrl}/stk-callback`,
+      CallBackURL: `${process.env.BASE_URL}/api/mpesa/webhook`,
       AccountReference: "Till payment",
       TransactionDesc: "Till payment",
     },

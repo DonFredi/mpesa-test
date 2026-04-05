@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error("M-Pesa transaction error:", error);
-
+    console.error("FULL-ERROR:", error.response?.data);
     return NextResponse.json({ message: error.message || "M-Pesa transaction failed" }, { status: 500 });
   }
 }

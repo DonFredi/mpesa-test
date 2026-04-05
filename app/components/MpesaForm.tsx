@@ -98,7 +98,12 @@ const MpesaForm = () => {
         console.log("Listening to doc", checkoutId);
         console.log("safaricom data", tx);
 
-        if (!tx) return;
+        if (!tx) {
+          setStatus("error");
+          setMessage("Transaction not successful.Try again later.");
+          unsub();
+          return;
+        }
 
         if (tx.status === "success") {
           setStatus("success");
@@ -108,7 +113,7 @@ const MpesaForm = () => {
 
         if (tx.status === "failed") {
           setStatus("error");
-          setMessage(`❌ Payment failed: ${tx.resultDesc || "cancelled"}`);
+          setMessage(`Payment failed: ${tx.resultDesc || "cancelled"}`);
           unsub();
         }
       });
