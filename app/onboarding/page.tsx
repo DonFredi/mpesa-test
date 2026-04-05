@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import OnboardingForm from "./OnboardingForm";
+import onboardingForm from "./onboardingForm";
 
 export default function Page() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <OnboardingForm />
+      <onboardingForm />
     </Suspense>
   );
 }

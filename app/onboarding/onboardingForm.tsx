@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function OnboardingForm() {
+export default function onboardingForm() {
   const params = useSearchParams();
 
   const selectedPlan = params.get("plan");
