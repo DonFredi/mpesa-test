@@ -1,4 +1,4 @@
-import MpesaForm from "@/components/ui/MpesaForm";
+import MpesaForm from "./components/ui/MpesaForm";
 
 export default function Form () {
     return (
