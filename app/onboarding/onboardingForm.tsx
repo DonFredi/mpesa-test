@@ -40,17 +40,13 @@ export default function OnboardingForm() {
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="max-w-xl mx-auto bg-white p-6 rounded-2xl shadow">
-
-        <h1 className="text-2xl font-bold text-gray-800">
-          Connect Your M-Pesa 🔗
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-800">Connect Your M-Pesa. 🔗</h1>
 
         <p className="text-sm text-gray-600 mt-1">
           Plan: <span className="font-medium">{selectedPlan}</span>
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-6">
-
           {/* BUSINESS INFO */}
           <input
             type="text"
@@ -98,16 +94,11 @@ export default function OnboardingForm() {
               type="text"
               placeholder="Account Number Format"
               className="w-full border p-2 rounded"
-              onChange={(e) =>
-                handleChange("accountNumber", e.target.value)
-              }
+              onChange={(e) => handleChange("accountNumber", e.target.value)}
             />
           )}
 
-          <button
-            type="submit"
-            className="w-full bg-green-600 text-white py-2 rounded-lg"
-          >
+          <button type="submit" className="w-full bg-green-600 text-white py-2 rounded-lg">
             Continue →
           </button>
         </form>
