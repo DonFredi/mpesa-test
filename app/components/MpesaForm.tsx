@@ -50,14 +50,15 @@ const MpesaForm = () => {
       payload.shortcode = formData.tillNumber;
     }
 
-    if (transactionType === "sendMoney") {
-      payload.receiverPhone = formData.receiverPhone;
-    }
-
+    // if (transactionType === "sendMoney") {
+    //   payload.phone = formData.phone; // sender
+    //   payload.receiverPhone = formData.receiverPhone;
+    //   payload.amount = Number(formData.amount);
+    // }
     console.log("Submitting payload:", payload);
 
     try {
-      const res = await fetch("/api/mpesa/transactions", {
+      const res = await fetch("/api/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-api-key": "LPrQyH0MfbozETH5zuQX" },
         body: JSON.stringify(payload),
@@ -98,12 +99,7 @@ const MpesaForm = () => {
         console.log("Listening to doc", checkoutId);
         console.log("safaricom data", tx);
 
-        if (!tx) {
-          setStatus("error");
-          setMessage("Transaction not successful.Try again later.");
-          unsub();
-          return;
-        }
+        if (!tx) return;
 
         if (tx.status === "success") {
           setStatus("success");
