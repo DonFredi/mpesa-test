@@ -31,7 +31,7 @@ export async function stkPush(
   });
   const baseUrl =
     mpesa.environment === "production" ? "https://api.safaricom.co.ke" : "https://sandbox.safaricom.co.ke";
-  const callbackUrl = mpesa.callbackUrl || `${process.env.BASE_URL}/api/mpesa/webhook`;
+  const callbackUrl = mpesa.callbackUrl || `${process.env.BASE_URL}/api/webhook`;
   try {
     const res = await axios.post(
       `${baseUrl}/mpesa/stkpush/v1/processrequest`,
