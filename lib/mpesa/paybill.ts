@@ -69,7 +69,7 @@ export async function paybillPayment({
         PartyB: mpesa.shortcode,
         PhoneNumber: phoneNumber,
         CallBackURL: callbackUrl,
-        AccountReference: accountReference,
+        AccountReference: accountReference || "TEST",
         TransactionDesc: "Paybill payment",
       },
       {

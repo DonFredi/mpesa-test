@@ -41,7 +41,7 @@ const MpesaForm = () => {
       payload.phone = formData.phone;
       payload.amount = Number(formData.amount);
       payload.shortcode = formData.paybillNumber;
-      payload.accountNumber = formData.accountNumber;
+      payload.accountReference = formData.accountNumber;
     }
 
     if (transactionType === "till") {
