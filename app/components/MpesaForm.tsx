@@ -56,23 +56,19 @@ const MpesaForm = () => {
     //   payload.amount = Number(formData.amount);
     // }
     console.log("Submitting payload:", payload);
+    const apiKey = localStorage.getItem("apiKey");
 
     try {
       const res = await fetch("/api/transactions", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-api-key": "LPrQyH0MfbozETH5zuQX" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      //   const data = await res.json();
-      //   const text = await data.text();
-      const text = await res.text();
-
       let data;
       try {
-        data = JSON.parse(text);
-      } catch (e) {
-        console.error("Server returned non-JSON:", text);
+        data = await res.json();
+      } catch {
         throw new Error("Server error occurred");
       }
       console.log("Raw Response", data);

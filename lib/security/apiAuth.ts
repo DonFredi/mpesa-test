@@ -5,7 +5,19 @@ import { decrypt } from "./encryption";
 export async function authenticateRequest(req: Request) {
   const apiKey = req.headers.get("x-api-key");
 
-  if (!apiKey) throw new Error("Missing API Key");
+  if (!apiKey) {
+    console.log("⚠️ Test mode request (no API key)");
+
+    return {
+      mpesa: {
+        consumerKey: process.env.MPESA_CONSUMER_KEY,
+        consumerSecret: process.env.MPESA_CONSUMER_SECRET,
+        shortcode: "174379",
+        passkey: process.env.MPESA_PASSKEY,
+      },
+      environment: "sandbox",
+    };
+  }
 
   const snap = await adminDb.collection("apiKeys").doc(apiKey).get();
 

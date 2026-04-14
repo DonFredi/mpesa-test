@@ -59,6 +59,7 @@ export default function OnboardingForm() {
         throw new Error(data.message);
       }
       setApiKey(data.apiKey);
+      localStorage.setItem("apiKey", data.apiKey);
       setFormData({
         businessName: "",
         email: "",
