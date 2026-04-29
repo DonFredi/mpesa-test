@@ -6,8 +6,34 @@ import { FieldValue } from "firebase-admin/firestore";
 import { checkRateLimit } from "@/lib/security/rateLimit";
 
 export async function POST(req: Request) {
+  const apiKey = req.headers.get("x-api-key");
   try {
-    const client = await authenticateRequest(req);
+    let client;
+    let isTestMode = false;
+
+    const apiKey = req.headers.get("x-api-key");
+
+    if (!apiKey) {
+      // 🧪 TEST MODE
+      isTestMode = true;
+
+      console.log("⚠️ Test mode request (no API key)");
+
+      client = {
+        id: "test-mode",
+        mpesa: {
+          consumerKey: process.env.MPESA_CONSUMER_KEY,
+          consumerSecret: process.env.MPESA_CONSUMER_SECRET,
+          shortcode: process.env.MPESA_SHORTCODE,
+          passkey: process.env.MPESA_PASSKEY,
+          environment: "sandbox",
+          callbackUrl: `${process.env.BASE_URL}/api/webhooks`,
+        },
+      };
+    } else {
+      // 💼 CLIENT MODE
+      client = await authenticateRequest(req);
+    }
 
     if (!client?.id) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -15,19 +41,19 @@ export async function POST(req: Request) {
 
     const clientId = client.id;
     const clientRef = adminDb.collection("clients").doc(clientId);
+    if (!isTestMode) {
+      // rate limit
+      const allowed = checkRateLimit(client.id);
+      if (!allowed) {
+        return NextResponse.json({ message: "Too many requests" }, { status: 429 });
+      }
 
-    // ✅ RATE LIMIT
-    const allowed = checkRateLimit(clientId);
-    if (!allowed) {
-      return NextResponse.json({ message: "Too many requests. Slow down." }, { status: 429 });
+      // monthly limit
+      const usage = client?.usage || {};
+      if (usage.transactionCount && client.monthlyLimit && usage.transactionCount >= client.monthlyLimit) {
+        return NextResponse.json({ message: "Monthly limit reached" }, { status: 429 });
+      }
     }
-
-    // ✅ MONTHLY LIMIT (FIXED STRUCTURE)
-    const usage = client?.usage || {};
-    if (usage.transactionCount && client.monthlyLimit && usage.transactionCount >= client.monthlyLimit) {
-      return NextResponse.json({ message: "Monthly transaction limit reached" }, { status: 429 });
-    }
-
     // ✅ M-PESA CONFIG
     const mpesa = client?.mpesa;
 
@@ -68,18 +94,24 @@ export async function POST(req: Request) {
       });
 
     // ✅ UPDATE USAGE ONLY AFTER SUCCESS
-    const currentMonth = new Date().toISOString().slice(0, 7);
 
-    await clientRef.set(
-      {
-        usage: {
-          month: currentMonth,
-          transactionCount: FieldValue.increment(1),
-          totalVolume: FieldValue.increment(amount || 0),
-        },
-      },
-      { merge: true },
-    );
+    if (!isTestMode) {
+      const currentMonth = new Date().toISOString().slice(0, 7);
+
+      await adminDb
+        .collection("clients")
+        .doc(client.id)
+        .set(
+          {
+            usage: {
+              month: currentMonth,
+              transactionCount: FieldValue.increment(1),
+              totalVolume: FieldValue.increment(amount || 0),
+            },
+          },
+          { merge: true },
+        );
+    }
 
     return NextResponse.json({
       checkoutRequestId: checkoutId,
