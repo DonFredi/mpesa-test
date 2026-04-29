@@ -1,4 +1,6 @@
-@tailwind utilities;
+@import "tailwind base";
+@import "tailwind components";
+@import "tailwind utilities";
 
 /* CSS variables */
 :root {
@@ -14,7 +16,7 @@
   }
 }
 
-/* Apply globally */
+/* Global styles */
 body {
   background: var(--background);
   color: var(--foreground);
