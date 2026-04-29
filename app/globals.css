@@ -1,6 +1,4 @@
-@import "tailwind base";
-@import "tailwind components";
-@import "tailwind utilities";
+@import "tailwindcss";
 
 /* CSS variables */
 :root {
