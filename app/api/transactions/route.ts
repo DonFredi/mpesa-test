@@ -11,7 +11,6 @@ export async function POST(req: Request) {
     const clientId = client?.id;
 
     const clientRef = adminDb.collection("clients").doc(clientId);
-    const rateRef = adminDb.collection("rateLimits").doc(clientId);
 
     // 🔥 1. CHECK MONTHLY LIMIT
     if (client?.transactionCount && client.monthlyLimit && client.transactionCount >= client.monthlyLimit) {
