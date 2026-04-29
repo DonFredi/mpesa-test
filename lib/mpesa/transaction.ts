@@ -1,6 +1,6 @@
 import { stkPush } from "./stk";
 import { paybillPayment } from "./paybill";
-import { tillPayment } from "./till";
+// import { tillPayment } from "./till";
 import { sendMoney } from "./b2c";
 
 export async function mpesaTransactionRouter(body: any, mpesa: any) {
@@ -14,8 +14,11 @@ export async function mpesaTransactionRouter(body: any, mpesa: any) {
       return paybillPayment({ ...body, mpesa });
 
     case "till":
-      return tillPayment({ ...body, mpesa });
-
+      return stkPush({
+        ...body,
+        mpesa,
+        transactionType: "CustomerBuyGoodsOnline", // ✅ FIX
+      });
     case "sendMoney":
       return sendMoney({ ...body, mpesa });
 

@@ -8,23 +8,27 @@ import { checkRateLimit } from "@/lib/security/rateLimit";
 export async function POST(req: Request) {
   try {
     const client = await authenticateRequest(req);
-    const clientId = client?.id;
 
-    const clientRef = adminDb.collection("clients").doc(clientId);
-
-    // 🔥 1. CHECK MONTHLY LIMIT
-    if (client?.transactionCount && client.monthlyLimit && client.transactionCount >= client.monthlyLimit) {
-      return NextResponse.json({ message: "Monthly transaction limit reached" }, { status: 429 });
+    if (!client?.id) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // ✅ Rate limit check
-    const allowed = checkRateLimit(client?.id);
+    const clientId = client.id;
+    const clientRef = adminDb.collection("clients").doc(clientId);
 
+    // ✅ RATE LIMIT
+    const allowed = checkRateLimit(clientId);
     if (!allowed) {
       return NextResponse.json({ message: "Too many requests. Slow down." }, { status: 429 });
     }
 
-    // 🔥 3. PROCESS REQUEST
+    // ✅ MONTHLY LIMIT (FIXED STRUCTURE)
+    const usage = client?.usage || {};
+    if (usage.transactionCount && client.monthlyLimit && usage.transactionCount >= client.monthlyLimit) {
+      return NextResponse.json({ message: "Monthly transaction limit reached" }, { status: 429 });
+    }
+
+    // ✅ M-PESA CONFIG
     const mpesa = client?.mpesa;
 
     if (!mpesa?.consumerKey || !mpesa?.consumerSecret) {
@@ -32,24 +36,13 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { transactionType } = body;
-    const currentMonth = new Date().toISOString().slice(0, 7); // "2026-04"
-
-    await clientRef.set(
-      {
-        usage: {
-          month: currentMonth,
-          transactionCount: FieldValue.increment(1),
-          totalVolume: FieldValue.increment(body.amount || 0),
-        },
-      },
-      { merge: true },
-    );
+    const { transactionType, amount } = body;
 
     if (!transactionType) {
-      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
+      return NextResponse.json({ message: "Missing transactionType" }, { status: 400 });
     }
 
+    // 🚀 PROCESS TRANSACTION
     const response = await mpesaTransactionRouter(body, mpesa);
 
     console.log("Safaricom response:", response);
@@ -58,27 +51,38 @@ export async function POST(req: Request) {
       throw new Error("Missing checkoutRequestId from Safaricom.");
     }
 
-    // 🔥 4. SAVE TRANSACTION
+    const checkoutId = response.CheckoutRequestID;
+
+    // ✅ SAVE TRANSACTION
     await adminDb
       .collection("transactions")
-      .doc(response.CheckoutRequestID)
+      .doc(checkoutId)
       .set({
         status: "pending",
-        amount: body.amount || null,
+        amount: amount || null,
         phone: body.phone || body.receiverPhone || null,
         transactionType,
         merchantRequestId: response.MerchantRequestID || null,
-        clientId: client?.id,
+        clientId,
         createdAt: new Date(),
       });
 
-    // 🔥 5. INCREMENT USAGE (ONLY AFTER SUCCESS)
-    await clientRef.update({
-      transactionCount: FieldValue.increment(1),
-    });
+    // ✅ UPDATE USAGE ONLY AFTER SUCCESS
+    const currentMonth = new Date().toISOString().slice(0, 7);
+
+    await clientRef.set(
+      {
+        usage: {
+          month: currentMonth,
+          transactionCount: FieldValue.increment(1),
+          totalVolume: FieldValue.increment(amount || 0),
+        },
+      },
+      { merge: true },
+    );
 
     return NextResponse.json({
-      checkoutRequestId: response.CheckoutRequestID,
+      checkoutRequestId: checkoutId,
     });
   } catch (error: any) {
     console.error("M-Pesa transaction error:", error);
