@@ -28,7 +28,7 @@ const services = [
 export default function Home() {
   const router = useRouter();
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10">
+    <div className="bg-gray-50 px-4 py-10">
       {/* HERO */}
       <div className="text-center max-w-2xl mx-auto mb-12 flex flex-col items-center">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-800">

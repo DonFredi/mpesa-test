@@ -119,25 +119,25 @@ const MpesaForm = () => {
   };
 
   return (
-    <div className="flex flex-col justify-between w-full">
-      <div className="flex flex-row gap-2 w-full">
+    <div className="flex flex-col justify-between w-3/4 items-center">
+      <div className="flex flex-row gap-2">
         <button
           onClick={() => setTransactionType("stkPush")}
-          className={`px-3 py-1 rounded ${transactionType === "stkPush" ? "bg-green-600 text-white" : "bg-gray-200"}`}
+          className={`px-6 py-2  rounded ${transactionType === "stkPush" ? "bg-green-600 text-white" : "bg-gray-200"}`}
         >
           Send Money
         </button>
 
         <button
           onClick={() => setTransactionType("paybill")}
-          className={`px-3 py-1 rounded ${transactionType === "paybill" ? "bg-green-600 text-white" : "bg-gray-200"}`}
+          className={`px-6 py-2 rounded ${transactionType === "paybill" ? "bg-green-600 text-white" : "bg-gray-200"}`}
         >
           Paybill
         </button>
 
         <button
           onClick={() => setTransactionType("till")}
-          className={`px-3 py-1 rounded ${transactionType === "till" ? "bg-green-600 text-white" : "bg-gray-200"}`}
+          className={`px-6 py-2  rounded ${transactionType === "till" ? "bg-green-600 text-white" : "bg-gray-200"}`}
         >
           Till
         </button>
@@ -195,7 +195,7 @@ const MpesaForm = () => {
             />
 
             <Input
-              type="number"
+              type="text"
               label="account"
               placeholder="Enter account number"
               className="input"

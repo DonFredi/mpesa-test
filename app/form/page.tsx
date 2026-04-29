@@ -1,13 +1,13 @@
 import MpesaForm from "../components/MpesaForm";
 
-export default function Form () {
-    return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between p-8 bg-white dark:bg-black sm:items-start">
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
+export default function Form() {
+  return (
+    <div className="flex justify-center">
+      <main className="flex flex-col items-center justify-between p-2 sm:items-start">
+        <div className="flex flex-col items-center text-center sm:items-start sm:text-left">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
             Mpesa Test Console
-<MpesaForm />
+            <MpesaForm />
           </h1>
         </div>
       </main>

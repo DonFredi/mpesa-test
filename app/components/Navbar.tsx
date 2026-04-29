@@ -18,7 +18,7 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
         {/* LOGO */}
         <Link href="/" className="text-lg font-bold text-green-600">
-          M-Pesa API
+          Script Pay
         </Link>
 
         {/* LINKS */}
