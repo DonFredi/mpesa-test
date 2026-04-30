@@ -83,7 +83,7 @@ export async function POST(req: Request) {
       { merge: true },
     );
 
-    // 📊 Update client usage (ONLY on success)
+    // Update client usage (ONLY on success)
     if (status === "success" && existingTx?.clientId) {
       const clientRef = adminDb.collection("clients").doc(existingTx.clientId);
 

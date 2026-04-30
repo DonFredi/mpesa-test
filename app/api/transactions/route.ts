@@ -6,7 +6,6 @@ import { FieldValue } from "firebase-admin/firestore";
 import { checkRateLimit } from "@/lib/security/rateLimit";
 
 export async function POST(req: Request) {
-  const apiKey = req.headers.get("x-api-key");
   try {
     let client;
     let isTestMode = false;
@@ -14,24 +13,24 @@ export async function POST(req: Request) {
     const apiKey = req.headers.get("x-api-key");
 
     if (!apiKey) {
-      // 🧪 TEST MODE
+      //TEST MODE
       isTestMode = true;
 
-      console.log("⚠️ Test mode request (no API key)");
+      console.log("Test mode request (no API key)");
 
       client = {
         id: "test-mode",
         mpesa: {
-          consumerKey: process.env.MPESA_CONSUMER_KEY,
-          consumerSecret: process.env.MPESA_CONSUMER_SECRET,
-          shortcode: process.env.MPESA_SHORTCODE,
-          passkey: process.env.MPESA_PASSKEY,
+          consumerKey: process.env.MPESA_SANDBOX_CONSUMER_KEY!,
+          consumerSecret: process.env.MPESA_SANDBOX_CONSUMER_SECRET!,
+          shortcode: 174379,
+          passkey: process.env.MPESA_SANDBOX_PASSKEY!,
           environment: "sandbox",
           callbackUrl: `${process.env.BASE_URL}/api/webhooks`,
         },
       };
     } else {
-      // 💼 CLIENT MODE
+      // CLIENT MODE
       client = await authenticateRequest(req);
     }
 
@@ -54,7 +53,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: "Monthly limit reached" }, { status: 429 });
       }
     }
-    // ✅ M-PESA CONFIG
+    // M-PESA CONFIG
     const mpesa = client?.mpesa;
 
     if (!mpesa?.consumerKey || !mpesa?.consumerSecret) {
@@ -79,7 +78,7 @@ export async function POST(req: Request) {
 
     const checkoutId = response.CheckoutRequestID;
 
-    // ✅ SAVE TRANSACTION
+    //  SAVE TRANSACTION
     await adminDb
       .collection("transactions")
       .doc(checkoutId)
@@ -89,11 +88,12 @@ export async function POST(req: Request) {
         phone: body.phone || body.receiverPhone || null,
         transactionType,
         merchantRequestId: response.MerchantRequestID || null,
-        clientId,
+        clientId: isTestMode ? null : client.id,
+        isTest: isTestMode,
         createdAt: new Date(),
       });
 
-    // ✅ UPDATE USAGE ONLY AFTER SUCCESS
+    // UPDATE USAGE ONLY AFTER SUCCESS
 
     if (!isTestMode) {
       const currentMonth = new Date().toISOString().slice(0, 7);
