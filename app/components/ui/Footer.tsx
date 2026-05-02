@@ -12,7 +12,7 @@ export default function Footer() {
           rel="noopener noreferrer"
           className="text-blue-400 hover:underline"
         >
-          ScriptTag
+          ScriptTagg
         </a>
       </p>
 
