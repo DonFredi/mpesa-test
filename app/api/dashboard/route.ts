@@ -8,7 +8,7 @@ export async function GET(req: Request) {
 
     const snapshot = await adminDb
       .collection("transactions")
-      .where("clientId", "==", client.id)
+      .where("clientId", "==", client?.id)
       .orderBy("createdAt", "desc")
       .limit(50)
       .get();
