@@ -8,67 +8,77 @@ export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
     const signature = req.headers.get("x-mpesa-signature") || "";
-
     const secret = process.env.MPESA_WEBHOOK_SECRET!;
 
-    // 🔒 Verify signature (only in production)
+    //  Verify signature (production only)
     if (process.env.NODE_ENV === "production") {
       if (!verifyMpesaSignature(rawBody, signature, secret)) {
+        console.warn("Invalid webhook signature");
         return NextResponse.json({ ResultCode: 1, ResultDesc: "Invalid signature" }, { status: 401 });
       }
     }
 
     const body = JSON.parse(rawBody);
 
-    console.log("🔥 WEBHOOK RECEIVED:", JSON.stringify(body, null, 2));
+    console.log(" WEBHOOK RECEIVED:", JSON.stringify(body, null, 2));
 
     const callback = body?.Body?.stkCallback;
 
     if (!callback) {
+      console.warn("Missing stkCallback");
       return NextResponse.json({ ResultCode: 1, ResultDesc: "Invalid callback" });
     }
 
     const { ResultCode, ResultDesc, CheckoutRequestID, MerchantRequestID, CallbackMetadata } = callback;
 
-    // 🔎 Extract metadata safely
-    let meta: any = {};
+    // Extract metadata safely
+    let meta: Record<string, any> = {};
 
-    if (CallbackMetadata?.Item?.length) {
-      meta = CallbackMetadata.Item.reduce((acc: any, item: any) => {
-        acc[item.Name] = item.Value;
-        return acc;
-      }, {});
+    if (Array.isArray(CallbackMetadata?.Item)) {
+      for (const item of CallbackMetadata.Item) {
+        if (item?.Name) {
+          meta[item.Name] = item.Value ?? null;
+        }
+      }
     }
 
     const txRef = adminDb.collection("transactions").doc(CheckoutRequestID);
     const txSnap = await txRef.get();
+
+    if (!txSnap.exists) {
+      console.warn("Transaction not found:", CheckoutRequestID);
+      return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" });
+    }
+
     const existingTx = txSnap.data();
 
-    const amount = meta.Amount || existingTx?.amount || 0;
-    const phone = meta.PhoneNumber || null;
+    // Idempotency (prevent double processing)
+    if (["success", "failed"].includes(existingTx?.status)) {
+      console.log("Duplicate webhook ignored:", CheckoutRequestID);
+      return NextResponse.json({ ResultCode: 0, ResultDesc: "Already processed" });
+    }
+
+    //  Normalize values
+    const amount = typeof meta.Amount === "number" ? meta.Amount : existingTx?.amount || 0;
+
+    const phone = meta.PhoneNumber || existingTx?.phone || null;
     const receipt = meta.MpesaReceiptNumber || null;
 
     const status = ResultCode === 0 ? "success" : "failed";
 
-    // 📌 Get existing transaction
-
-    if (!txSnap.exists) {
-      console.warn("⚠️ Transaction not found:", CheckoutRequestID);
-      return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" });
-    }
-
-    // 🛑 Idempotency check (avoid double processing)
-    if (existingTx?.status === "success" || existingTx?.status === "failed") {
-      console.log("⚠️ Duplicate webhook ignored:", CheckoutRequestID);
-      return NextResponse.json({ ResultCode: 0, ResultDesc: "Already processed" });
-    }
-
-    // 💰 Calculate 1% fee ONLY on success
+    //  Fee calculation (ONLY on success)
     const fee = status === "success" ? calculateFee(amount) : 0;
+    const netAmount = amount - fee;
 
-    console.log("Updating transaction:", CheckoutRequestID, { status, amount, fee });
+    console.log(" Processing transaction:", {
+      CheckoutRequestID,
+      status,
+      amount,
+      fee,
+      clientId: existingTx?.clientId,
+    });
 
-    // ✅ Update transaction
+    // Update transaction
     await txRef.set(
       {
         status,
@@ -77,13 +87,14 @@ export async function POST(req: Request) {
         amount,
         phone,
         fee,
-        netAmount: amount - fee,
+        netAmount,
         completedAt: status === "success" ? new Date() : null,
+        updatedAt: new Date(),
       },
       { merge: true },
     );
 
-    // Update client usage (ONLY on success)
+    // Update client usage ONLY if success
     if (status === "success" && existingTx?.clientId) {
       const clientRef = adminDb.collection("clients").doc(existingTx.clientId);
 
@@ -100,8 +111,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" });
-  } catch (error) {
-    console.error("❌ Webhook error:", error);
+  } catch (error: any) {
+    console.error("Webhook error:", error);
     return NextResponse.json({ ResultCode: 1, ResultDesc: "Webhook failed" });
   }
 }

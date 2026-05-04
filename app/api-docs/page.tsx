@@ -13,7 +13,7 @@ export default function ApiDocsPage() {
         {/* BASE URL */}
         <section className="mt-6">
           <h2 className="text-xl font-semibold">Base URL</h2>
-          <div className="bg-gray-100 p-3 rounded mt-2 text-sm">https://mpesa-test-seven.vercel.app/api/mpesa</div>
+          <div className="bg-gray-100 p-3 rounded mt-2 text-sm">https://mpesa-payments.vercel.app/api/mpesa</div>
         </section>
 
         {/* AUTH */}

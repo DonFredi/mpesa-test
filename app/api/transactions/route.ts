@@ -4,6 +4,7 @@ import { mpesaTransactionRouter } from "@/lib/mpesa/transaction";
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { checkRateLimit } from "@/lib/security/rateLimit";
+import { calculateFee } from "@/lib/billing/fee";
 
 export async function POST(req: Request) {
   try {
@@ -77,7 +78,7 @@ export async function POST(req: Request) {
     }
 
     const checkoutId = response.CheckoutRequestID;
-
+    const fee = calculateFee(amount || 0);
     //  SAVE TRANSACTION
     await adminDb
       .collection("transactions")
@@ -85,6 +86,7 @@ export async function POST(req: Request) {
       .set({
         status: "pending",
         amount: amount || null,
+        fee,
         phone: body.phone || body.receiverPhone || null,
         transactionType,
         merchantRequestId: response.MerchantRequestID || null,

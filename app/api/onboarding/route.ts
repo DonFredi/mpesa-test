@@ -6,7 +6,20 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const { businessName, email, phone, type, shortcode, accountNumber, plan } = body;
+    const {
+      businessName,
+      email,
+      phone,
+      type,
+      shortcode,
+      accountNumber,
+
+      consumerKey,
+      consumerSecret,
+      passkey,
+      environment,
+      plan,
+    } = body;
 
     // ✅ Basic validation
     if (!businessName || !email || !phone) {
@@ -22,14 +35,32 @@ export async function POST(req: Request) {
       email,
       phone,
       type,
-      shortcode,
       accountNumber: accountNumber || null,
+      mpesa: {
+        consumerKey,
+        consumerSecret,
+        passkey,
+        shortcode,
+        environment: environment || "production",
+        callbackUrl: `${process.env.BASE_URL}/api/webhooks`,
+      },
       plan: plan || {
         name: "starter",
         maxRequestsPerMonth: 1000,
       },
+
+      usage: {
+        transactionCount: 0,
+        totalVolume: 0,
+        totalFees: 0,
+      },
+
       createdAt: new Date(),
     });
+
+    if (!consumerKey || !consumerSecret || !passkey || !shortcode) {
+      return NextResponse.json({ message: "Missing M-Pesa credentials" }, { status: 400 });
+    }
 
     // 🔥 2. Store API key mapping
     await adminDb.collection("apiKeys").doc(apiKey).set({
