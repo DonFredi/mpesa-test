@@ -42,7 +42,7 @@ export default function Home() {
           >
             Get Started
           </button>
-          <Link href="/form" className="mt-6 border border-green-600 text-green-600 px-6 py-2 rounded-lg">
+          <Link href="/test-mode" className="mt-6 border border-green-600 text-green-600 px-6 py-2 rounded-lg">
             Test Console
           </Link>
         </div>
