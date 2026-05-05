@@ -6,20 +6,21 @@ import { Input } from "../components/ui/Input";
 
 type TransactionType = "stkPush" | "paybill" | "till";
 
-const MpesaForm = () => {
+const TestConsole = () => {
   const [transactionType, setTransactionType] = useState<TransactionType>("stkPush");
   const [formData, setFormData] = useState<any>({});
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
   const [apiKey, setApiKey] = useState<string | null>(null);
+  const [mode, setMode] = useState<"Test" | "Client">("Test");
 
   useEffect(() => {
     const key = localStorage.getItem("apiKey");
     setApiKey(key);
   }, []);
 
-  const isTestMode = !apiKey;
+  const Test = !apiKey;
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev: any) => ({
@@ -42,7 +43,7 @@ const MpesaForm = () => {
     };
 
     // Only allow shortcode override in TEST MODE
-    if (isTestMode) {
+    if (Test) {
       if (transactionType === "paybill") {
         payload.shortcode = formData.paybillNumber;
         payload.accountReference = formData.accountNumber;
@@ -54,12 +55,19 @@ const MpesaForm = () => {
     }
 
     try {
+      const apiKey = localStorage.getItem("apiKey");
+
+      const headers: any = {
+        "Content-Type": "application/json",
+      };
+
+      if (mode === "Client" && apiKey) {
+        headers["x-api-key"] = apiKey;
+      }
+
       const res = await fetch("/api/transactions", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(apiKey && { "x-api-key": apiKey }),
-        },
+        headers,
         body: JSON.stringify(payload),
       });
 
@@ -111,10 +119,10 @@ const MpesaForm = () => {
       {/* MODE BADGE */}
       <div
         className={`text-sm px-3 py-1 rounded ${
-          isTestMode ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"
+          Test ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"
         }`}
       >
-        {isTestMode ? "🧪 Test Mode (Sandbox)" : "🔐 Client Mode"}
+        {mode === "Test" ? "Test Mode" : " Client Mode"}
       </div>
 
       {/* TRANSACTION TYPE */}
@@ -141,7 +149,7 @@ const MpesaForm = () => {
         />
 
         {/* TEST MODE ONLY FIELDS */}
-        {isTestMode && transactionType === "paybill" && (
+        {Test && transactionType === "paybill" && (
           <>
             <Input
               label="Paybill Number"
@@ -156,7 +164,7 @@ const MpesaForm = () => {
           </>
         )}
 
-        {isTestMode && transactionType === "till" && (
+        {Test && transactionType === "till" && (
           <Input
             label="Till Number"
             value={formData.tillNumber || ""}
@@ -174,4 +182,4 @@ const MpesaForm = () => {
   );
 };
 
-export default MpesaForm;
+export default TestConsole;
