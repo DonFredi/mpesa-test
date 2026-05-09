@@ -39,7 +39,7 @@ export async function paybillPayment({
     const baseUrl = environment === "production" ? "https://api.safaricom.co.ke" : "https://sandbox.safaricom.co.ke";
 
     // 🔗 CALLBACK (bulletproof)
-    const base = process.env.BASE_URL || "https://mpesa-test-seven.vercel.app";
+    const base = process.env.BASE_URL || "https://mpesa-payments.vercel.app";
 
     const callbackUrl = mpesa.callbackUrl || `${base}/api/webhook`;
 
