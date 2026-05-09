@@ -70,7 +70,7 @@ export async function POST(req: Request) {
     const fee = status === "success" ? calculateFee(amount) : 0;
     const netAmount = amount - fee;
 
-    console.log(" Processing transaction:", {
+    console.log(" Updating transaction:", {
       CheckoutRequestID,
       status,
       amount,
@@ -108,6 +108,7 @@ export async function POST(req: Request) {
         },
         { merge: true },
       );
+      console.log("Transaction updated");
     }
 
     return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" });
