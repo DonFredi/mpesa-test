@@ -1,56 +1,73 @@
 import axios from "axios";
-import { generatePassword, generateTimestamp, normalizePhone } from "./utils";
 import { getAccessToken } from "./token";
 
-export async function manualPayment({ phone, amount, mpesa }: { phone: string; amount: number; mpesa: any }) {
-  const environment = mpesa.environment || "sandbox";
+type RegisterC2BProps = {
+  mpesa: {
+    shortcode: string;
+    consumerKey: string;
+    consumerSecret: string;
+    environment?: "sandbox" | "production";
+  };
+};
 
-  const baseUrl = environment === "production" ? "https://api.safaricom.co.ke" : "https://sandbox.safaricom.co.ke";
-try {
+export async function registerC2B({ mpesa }: RegisterC2BProps) {
+  try {
     // 🔒 VALIDATION
-    if (!amount || amount < 1) throw new Error("Invalid amount");
-    if (!phone) throw new Error("Phone is required");
+    if (!mpesa?.shortcode) {
+      throw new Error("Missing shortcode");
+    }
 
     if (!mpesa?.consumerKey || !mpesa?.consumerSecret) {
-      throw new Error("Missing consumer credentials");
+      throw new Error("Missing M-Pesa credentials");
     }
 
-    if (!mpesa?.shortcode || !mpesa?.passkey) {
-      throw new Error("Missing shortcode or passkey");
-    }
-
-    // 📱 FORMAT PHONE
-    const phoneNumber = normalizePhone(phone);
-
-    // ⏱ TIMESTAMP + PASSWORD
-    const timestamp = generateTimestamp();
-    const password = generatePassword(mpesa.shortcode, mpesa.passkey, timestamp);
-
-    // 🌍 ENVIRONMENT (fallback)
+    // 🌍 ENVIRONMENT
     const environment = mpesa.environment || "sandbox";
 
     const baseUrl = environment === "production" ? "https://api.safaricom.co.ke" : "https://sandbox.safaricom.co.ke";
 
-    // 🔗 CALLBACK (bulletproof)
-    const base = process.env.BASE_URL || "https://mpesa-test-seven.vercel.app";
-
-    const callbackUrl = mpesa.callbackUrl || `${base}/api/webhooks`;
-
-    // 🔑 TOKEN
+    // 🔑 ACCESS TOKEN
     const token = await getAccessToken(mpesa.consumerKey, mpesa.consumerSecret, environment);
-  const res = await axios.post(
-    `${baseUrl}/mpesa/c2b/v1/registerurl`,
-    {
-      ShortCode: shortcode,
-      ResponseType: "Completed",
-      ConfirmationURL: "https://api.scripttagg.com/api/c2b/confirm",
 
-      ValidationURL: "https://api.scripttagg.com/api/c2b/validate",
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
+    // 🌐 CALLBACK URLS
+    const base = process.env.BASE_URL || "https://mpesa-payments.vercel.app";
+
+    const ConfirmationURL = `${base}/api/c2b/confirm`;
+
+    const ValidationURL = `${base}/api/c2b/validate`;
+
+    console.log("🚀 REGISTERING C2B URLS:", {
+      shortcode: mpesa.shortcode,
+      environment,
+      ConfirmationURL,
+      ValidationURL,
+    });
+
+    // 🚀 REGISTER URLS
+    const res = await axios.post(
+      `${baseUrl}/mpesa/c2b/v1/registerurl`,
+      {
+        ShortCode: mpesa.shortcode,
+
+        ResponseType: "Completed",
+
+        ConfirmationURL,
+
+        ValidationURL,
       },
-    },
-  );
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    console.log("✅ C2B REGISTERED:", res.data);
+
+    return res.data;
+  } catch (error: any) {
+    console.error("C2B REGISTRATION ERROR:", error?.response?.data || error.message);
+
+    throw new Error(error?.response?.data?.errorMessage || error.message || "Failed to register C2B URLs");
+  }
 }
