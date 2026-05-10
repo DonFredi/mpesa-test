@@ -23,7 +23,7 @@ export async function tillPayment({ amount, phone, mpesa }: { amount: number; ph
       PartyA: phoneNumber,
       PartyB: mpesa.tillNumber,
       PhoneNumber: phoneNumber,
-      CallBackURL: `${process.env.BASE_URL}/api/mpesa/webhook`,
+      CallBackURL: `${process.env.BASE_URL}/webhook`,
       AccountReference: "Till payment",
       TransactionDesc: "Till payment",
     },

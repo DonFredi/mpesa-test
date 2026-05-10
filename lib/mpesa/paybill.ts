@@ -41,7 +41,7 @@ export async function paybillPayment({
     // 🔗 CALLBACK (bulletproof)
     const base = process.env.BASE_URL || "https://mpesa-payments.vercel.app";
 
-    const callbackUrl = mpesa.callbackUrl || `${base}/api/webhook`;
+    const callbackUrl = `${base}/api/webhook`;
 
     // 🔑 TOKEN
     const token = await getAccessToken(mpesa.consumerKey, mpesa.consumerSecret, environment);

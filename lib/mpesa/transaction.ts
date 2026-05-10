@@ -17,7 +17,7 @@ export async function mpesaTransactionRouter(body: any, mpesa: any) {
       return stkPush({
         ...body,
         mpesa,
-        transactionType: "CustomerBuyGoodsOnline", // ✅ FIX
+        transactionType: "CustomerBuyGoodsOnline",
       });
     case "sendMoney":
       return sendMoney({ ...body, mpesa });

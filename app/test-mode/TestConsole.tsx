@@ -34,7 +34,7 @@ const TestConsole = () => {
 
     setLoading(true);
     setStatus("pending");
-    setMessage("📲 Check your phone to complete payment...");
+    setMessage("📲Check your phone to complete payment...");
 
     const payload: any = {
       transactionType,
@@ -83,7 +83,7 @@ const TestConsole = () => {
         throw new Error("Missing checkoutRequestId");
       }
 
-      setMessage("⏳ Awaiting confirmation...");
+      setMessage("Awaiting confirmation...");
 
       const unsub = onSnapshot(doc(db, "transactions", checkoutId), (snap) => {
         const tx = snap.data();
@@ -91,7 +91,7 @@ const TestConsole = () => {
 
         if (tx.status === "success") {
           setStatus("success");
-          setMessage("✅ Payment successful!");
+          setMessage(" Payment successful!");
           unsub();
         }
 
@@ -105,7 +105,7 @@ const TestConsole = () => {
       // fallback message
       setTimeout(() => {
         setMessage("Still waiting... please complete payment on your phone.");
-      }, 10000);
+      }, 1000);
     } catch (error: any) {
       setStatus("error");
       setMessage(error.message);
