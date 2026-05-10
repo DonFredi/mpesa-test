@@ -11,12 +11,12 @@ export async function POST(req: Request) {
     const secret = process.env.MPESA_WEBHOOK_SECRET!;
 
     //  Verify signature (production only)
-    if (process.env.NODE_ENV === "production") {
-      if (!verifyMpesaSignature(rawBody, signature, secret)) {
-        console.warn("Invalid webhook signature");
-        return NextResponse.json({ ResultCode: 1, ResultDesc: "Invalid signature" }, { status: 401 });
-      }
-    }
+    // if (process.env.NODE_ENV === "production") {
+    //   if (!verifyMpesaSignature(rawBody, signature, secret)) {
+    //     console.warn("Invalid webhook signature");
+    //     return NextResponse.json({ ResultCode: 1, ResultDesc: "Invalid signature" }, { status: 401 });
+    //   }
+    // }
 
     const body = JSON.parse(rawBody);
 
