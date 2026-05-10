@@ -30,6 +30,7 @@ export async function POST(req: Request) {
           callbackUrl: `${process.env.BASE_URL}/api/webhooks`,
         },
       };
+      console.log("CALLBACK URL:", client.mpesa.callbackUrl);
     } else {
       // CLIENT MODE
       client = await authenticateRequest(req);
