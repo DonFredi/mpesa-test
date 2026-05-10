@@ -84,31 +84,31 @@ const TestConsole = () => {
       }
 
       setMessage("Awaiting confirmation...");
+      const waitingTimeout = setTimeout(() => {
+        setMessage("Still waiting...Please complete payment n your phone.");
+      }, 10000);
 
       const unsub = onSnapshot(doc(db, "transactions", checkoutId), (snap) => {
         const tx = snap.data();
         if (!tx) return;
 
         if (tx.status === "success") {
+          clearTimeout(waitingTimeout);
           setStatus("success");
           setMessage(" Payment successful!");
           unsub();
         }
 
         if (tx.status === "failed") {
+          clearTimeout(waitingTimeout);
           setStatus("error");
-          setMessage(`❌ ${tx.resultDesc || "Payment failed"}`);
+          setMessage(`❌ ${tx.resultDesc || "Transaction failed"}`);
           unsub();
         }
       });
-
-      // fallback message
-      setTimeout(() => {
-        setMessage("Still waiting... please complete payment on your phone.");
-      }, 1000);
     } catch (error: any) {
       setStatus("error");
-      setMessage(error.message);
+      setMessage(error.message || "Transaction failed");
     } finally {
       setLoading(false);
     }
