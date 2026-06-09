@@ -41,25 +41,15 @@ export async function POST(req: Request) {
       .doc(body.TransID)
       .set({
         clientId,
-
         transactionType: "c2b",
-
         status: "success",
-
         amount,
-
         fee,
-
         netAmount: amount - fee,
-
         phone: body.MSISDN,
-
         receipt: body.TransID,
-
         accountReference: body.BillRefNumber || null,
-
         shortcode: body.BusinessShortCode,
-
         createdAt: new Date(),
         completedAt: new Date(),
       });
@@ -73,9 +63,7 @@ export async function POST(req: Request) {
           {
             usage: {
               successfulTransactions: FieldValue.increment(1),
-
               totalVolume: FieldValue.increment(amount),
-
               totalFees: FieldValue.increment(fee),
             },
           },
@@ -86,15 +74,10 @@ export async function POST(req: Request) {
     //  LOG WEBHOOK
     await adminDb.collection("webhookLogs").add({
       type: "c2b-confirmation",
-
       rawBody: body,
-
       transactionId: body.TransID,
-
       clientId,
-
       processed: true,
-
       createdAt: new Date(),
     });
 

@@ -39,12 +39,12 @@ const ClientCheckout = () => {
         if (!tx) return;
 
         if (tx.status === "success") {
-          setMessage("✅ Payment successful!");
+          setMessage("Payment successful!");
           unsub();
         }
 
         if (tx.status === "failed") {
-          setMessage("❌ Payment failed");
+          setMessage("Payment failed");
           unsub();
         }
       });

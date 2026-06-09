@@ -5,9 +5,9 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    console.log("🔥 C2B VALIDATION:", body);
+    console.log("C2B VALIDATION:", body);
 
-    // 🔥 LOG WEBHOOK
+    //  LOG WEBHOOK
     await adminDb.collection("webhookLogs").add({
       type: "c2b-validation",
       rawBody: body,

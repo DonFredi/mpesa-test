@@ -8,8 +8,6 @@ export default function OnboardingForm() {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const params = useSearchParams();
-
-  const selectedPlan = params.get("plan");
   const selectedType = params.get("type");
 
   const [formData, setFormData] = useState({
@@ -19,6 +17,9 @@ export default function OnboardingForm() {
     type: selectedType || "stkPush",
     shortcode: "",
     accountNumber: "",
+    consumerKey: "",
+    consumerSecret: "",
+    passKey: "",
   });
 
   const copyToClipboard = async () => {
@@ -42,15 +43,16 @@ export default function OnboardingForm() {
     e.preventDefault();
     setLoading(true);
     try {
+      const payload = {
+        ...formData,
+        email: formData.email.trim().toLowerCase(), // FIX HERE
+      };
       const res = await fetch("/api/onboarding", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...formData,
-          plan: selectedPlan,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -67,6 +69,9 @@ export default function OnboardingForm() {
         type: selectedType || "stkPush",
         shortcode: "",
         accountNumber: "",
+        consumerKey: "",
+        consumerSecret: "",
+        passKey: "",
       });
     } catch (err: any) {
       alert(err.message || "Something went wrong");
@@ -94,20 +99,10 @@ export default function OnboardingForm() {
             </button>
           </div>
         ) : (
-          // ✅ FORM
-          <form onSubmit={handleSubmit}>{/* inputs */}</form>
-        )}
-
-        <section>
-          <p className="text-sm text-gray-600 mt-1">
-            Plan: <span className="font-medium">{selectedPlan}</span>
-          </p>
-
+          // FORM
           <form onSubmit={handleSubmit} className="space-y-4 mt-6">
-            {/* BUSINESS INFO */}
             <input
               type="text"
-              disabled={loading}
               placeholder="Business Name"
               className="w-full border p-2 rounded"
               onChange={(e) => handleChange("businessName", e.target.value)}
@@ -115,7 +110,6 @@ export default function OnboardingForm() {
 
             <input
               type="email"
-              disabled={loading}
               placeholder="Email"
               className="w-full border p-2 rounded"
               onChange={(e) => handleChange("email", e.target.value)}
@@ -123,13 +117,11 @@ export default function OnboardingForm() {
 
             <input
               type="text"
-              disabled={loading}
               placeholder="Phone Number"
               className="w-full border p-2 rounded"
               onChange={(e) => handleChange("phone", e.target.value)}
             />
 
-            {/* TRANSACTION TYPE */}
             <select
               className="w-full border p-2 rounded"
               value={formData.type}
@@ -137,34 +129,53 @@ export default function OnboardingForm() {
             >
               <option value="stkPush">STK Push</option>
               <option value="paybill">Paybill</option>
-              <option value="till">Till (Buy Goods)</option>
+              <option value="till">Till</option>
             </select>
 
-            {/* SHORTCODE / TILL */}
+            {/* FIXED: shortcode */}
             <input
               type="text"
-              disabled={loading}
-              placeholder="Till / Paybill Number"
+              placeholder="Shortcode / Till Number"
               className="w-full border p-2 rounded"
               onChange={(e) => handleChange("shortcode", e.target.value)}
             />
 
-            {/* PAYBILL ONLY */}
             {formData.type === "paybill" && (
               <input
                 type="text"
-                disabled={loading}
-                placeholder="Account Number Format"
+                placeholder="Account Number"
                 className="w-full border p-2 rounded"
                 onChange={(e) => handleChange("accountNumber", e.target.value)}
               />
             )}
 
+            <input
+              type="text"
+              placeholder="Consumer Key"
+              className="w-full border p-2 rounded"
+              onChange={(e) => handleChange("consumerKey", e.target.value)}
+            />
+
+            <input
+              type="text"
+              placeholder="Consumer Secret"
+              className="w-full border p-2 rounded"
+              onChange={(e) => handleChange("consumerSecret", e.target.value)}
+            />
+
+            {/* FIXED: passkey */}
+            <input
+              type="text"
+              placeholder="Passkey"
+              className="w-full border p-2 rounded"
+              onChange={(e) => handleChange("passkey", e.target.value)}
+            />
+
             <button type="submit" disabled={loading} className="w-full bg-green-600 text-white py-2 rounded-lg">
-              {loading ? "Setting up..." : "Continue → "}
+              {loading ? "Setting up..." : "Continue →"}
             </button>
           </form>
-        </section>
+        )}
       </div>
     </div>
   );

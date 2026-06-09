@@ -8,15 +8,15 @@ export async function POST(req: Request) {
 
     const { businessName, email, phone, type, shortcode, accountNumber, plan } = body;
 
-    // ✅ Basic validation
+    // Basic validation
     if (!businessName || !email || !phone) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
 
-    // 🔑 Generate API key
+    //  Generate API key
     const apiKey = generateApiKey();
 
-    // 🔥 1. Create client
+    // 1. Create client
     const clientRef = await adminDb.collection("clients").add({
       businessName,
       email,
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       createdAt: new Date(),
     });
 
-    // 🔥 2. Store API key mapping
+    //  2. Store API key mapping
     await adminDb.collection("apiKeys").doc(apiKey).set({
       clientId: clientRef.id,
       createdAt: new Date(),

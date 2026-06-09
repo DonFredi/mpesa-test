@@ -69,7 +69,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Missing transactionType" }, { status: 400 });
     }
 
-    // 🚀 PROCESS TRANSACTION
+    // PROCESS TRANSACTION
     const response = await mpesaTransactionRouter(body, mpesa);
 
     console.log("Safaricom response:", response);
@@ -91,7 +91,7 @@ export async function POST(req: Request) {
         phone: body.phone || body.receiverPhone || null,
         transactionType,
         merchantRequestId: response.MerchantRequestID || null,
-        clientId: isTestMode ? null : client.id,
+        clientId: client.id || "Unknown",
         isTest: isTestMode,
         createdAt: new Date(),
       });

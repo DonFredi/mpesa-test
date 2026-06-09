@@ -102,7 +102,7 @@ const TestConsole = () => {
         if (tx.status === "failed") {
           clearTimeout(waitingTimeout);
           setStatus("error");
-          setMessage(`❌ ${tx.resultDesc || "Transaction failed"}`);
+          setMessage(` ${tx.resultDesc || "Transaction failed"}`);
           unsub();
         }
       });

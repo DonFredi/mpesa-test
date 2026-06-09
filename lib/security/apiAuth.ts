@@ -1,6 +1,4 @@
-import { doc, getDoc } from "firebase/firestore";
 import { adminDb } from "@/lib/firebase/admin";
-import { decrypt } from "./encryption";
 
 export async function authenticateRequest(req: Request) {
   const apiKey = req.headers.get("x-api-key");

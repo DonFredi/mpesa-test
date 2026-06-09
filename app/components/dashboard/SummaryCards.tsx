@@ -1,4 +1,11 @@
-const SummaryCards = ({ transactions }: { transactions: any[] }) => {
+import type { Transaction } from "@/app/types/transaction";
+
+interface Props {
+  transactions?: Transaction[];
+  isAdmin?: boolean;
+}
+
+const SummaryCards = ({ transactions = [] }: Props) => {
   const successful = transactions.filter((t) => t.status === "success");
 
   const failed = transactions.filter((t) => t.status === "failed");
