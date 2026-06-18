@@ -70,7 +70,7 @@ const TestConsole = () => {
         headers,
         body: JSON.stringify(payload),
       });
-
+      console.log("Payload;", payload);
       const data = await res.json();
 
       if (!res.ok) {

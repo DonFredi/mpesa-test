@@ -6,6 +6,19 @@ import { FieldValue } from "firebase-admin/firestore";
 import { checkRateLimit } from "@/lib/security/rateLimit";
 import { calculateFee } from "@/lib/billing/fee";
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "http://localhost:3000",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 200,
+    headers: corsHeaders,
+  });
+}
+
 export async function POST(req: Request) {
   try {
     let client;
