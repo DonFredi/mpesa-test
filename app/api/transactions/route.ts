@@ -136,7 +136,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       { message: error.message || "M-Pesa transaction failed" },
-      { status: 500, headers: corsHeaders },
+      {
+        status: 500,
+        headers: corsHeaders,
+      },
     );
   }
 }
