@@ -6,16 +6,9 @@ import { FieldValue } from "firebase-admin/firestore";
 import { checkRateLimit } from "@/lib/security/rateLimit";
 import { calculateFee } from "@/lib/billing/fee";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "http://localhost:3000",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization,x-api-key",
-};
-
 export async function OPTIONS() {
   return new Response(null, {
     status: 200,
-    headers: corsHeaders,
   });
 }
 
@@ -72,7 +65,7 @@ export async function POST(req: Request) {
     const mpesa = client?.mpesa;
 
     if (!mpesa?.consumerKey || !mpesa?.consumerSecret) {
-      return NextResponse.json({ message: "Client M-Pesa credentials missing" }, { status: 500, headers: corsHeaders });
+      return NextResponse.json({ message: "Client M-Pesa credentials missing" }, { status: 500 });
     }
 
     const body = await req.json();
@@ -129,7 +122,7 @@ export async function POST(req: Request) {
         );
     }
 
-    return NextResponse.json({ checkoutRequestId: checkoutId }, { headers: corsHeaders });
+    return NextResponse.json({ checkoutRequestId: checkoutId });
   } catch (error: any) {
     console.error("M-Pesa transaction error:", error);
     console.error("FULL-ERROR:", error.response?.data);
@@ -138,7 +131,6 @@ export async function POST(req: Request) {
       { message: error.message || "M-Pesa transaction failed" },
       {
         status: 500,
-        headers: corsHeaders,
       },
     );
   }
