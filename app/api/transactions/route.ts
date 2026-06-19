@@ -40,7 +40,7 @@ export async function POST(req: Request) {
           shortcode: 174379,
           passkey: process.env.MPESA_SANDBOX_PASSKEY!,
           environment: "sandbox",
-          callbackUrl: `${process.env.BASE_URL}/api/webhooks`,
+          callbackUrl: `${process.env.BASE_URL}/api/webhook`,
         },
       };
       console.log("CALLBACK URL:", client.mpesa.callbackUrl);
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
     const mpesa = client?.mpesa;
 
     if (!mpesa?.consumerKey || !mpesa?.consumerSecret) {
-      throw new Error("Client M-Pesa credentials missing");
+      return NextResponse.json({ message: "Client M-Pesa credentials missing" }, { status: 500, headers: corsHeaders });
     }
 
     const body = await req.json();
