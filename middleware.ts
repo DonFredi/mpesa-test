@@ -1,12 +1,11 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 const allowedOrigin = "http://localhost:3000";
 
 export function middleware(req: NextRequest) {
   const origin = req.headers.get("origin") || allowedOrigin;
 
-  // Handle preflight
+  // Handle preflight request
   if (req.method === "OPTIONS") {
     return new NextResponse(null, {
       status: 204,
