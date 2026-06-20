@@ -67,7 +67,7 @@ export async function POST(req: Request) {
     const { transactionType, amount } = body;
 
     if (!transactionType) {
-      return NextResponse.json({ message: "Missing transactionType" }, { status: 400 });
+      return NextResponse.json({ message: "Missing transactionType." }, { status: 400 });
     }
 
     // PROCESS TRANSACTION
