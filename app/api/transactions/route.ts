@@ -5,10 +5,20 @@ import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { checkRateLimit } from "@/lib/security/rateLimit";
 import { calculateFee } from "@/lib/billing/fee";
+const allowedOrigins = ["http://localhost:3000", "https://your-production-domain.com"];
+
+const origin = req.headers.get("origin");
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": allowedOrigins.includes(origin || "") ? origin! : "http://localhost:3000",
+  "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key",
+};
 
 export async function OPTIONS() {
   return new Response(null, {
-    status: 200,
+    status: 204,
+    headers: corsHeaders,
   });
 }
 
@@ -43,7 +53,7 @@ export async function POST(req: Request) {
     }
 
     if (!client?.id) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401, headers: corsHeaders });
     }
 
     const clientId = client.id;
@@ -122,7 +132,7 @@ export async function POST(req: Request) {
         );
     }
 
-    return NextResponse.json({ checkoutRequestId: checkoutId });
+    return NextResponse.json({ checkoutRequestId: checkoutId }, { headers: corsHeaders });
   } catch (error: any) {
     console.error("M-Pesa transaction error:", error);
     console.error("FULL-ERROR:", error.response?.data);
