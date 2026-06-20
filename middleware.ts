@@ -1,20 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const allowedOrigin = "http://localhost:3000";
+const allowedOrigins = ["http://localhost:3000"];
 
 export function middleware(req: NextRequest) {
-  const origin = req.headers.get("origin");
+  const origin = req.headers.get("origin") || "";
 
-  const responseOrigin = origin === allowedOrigin ? origin : allowedOrigin;
+  const isAllowed = allowedOrigins.includes(origin);
+  const finalOrigin = isAllowed ? origin : allowedOrigins[0];
 
-  console.log("[MIDDLEWARE]", req.method, req.nextUrl.pathname, req.headers.get("origin"));
-
-  // Handle preflight request
   if (req.method === "OPTIONS") {
     return new NextResponse(null, {
       status: 204,
       headers: {
-        "Access-Control-Allow-Origin": responseOrigin,
+        "Access-Control-Allow-Origin": finalOrigin,
         "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key",
       },
@@ -23,7 +21,7 @@ export function middleware(req: NextRequest) {
 
   const res = NextResponse.next();
 
-  res.headers.set("Access-Control-Allow-Origin", responseOrigin);
+  res.headers.set("Access-Control-Allow-Origin", finalOrigin);
   res.headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
   res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, x-api-key");
 
@@ -31,5 +29,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/:path*"],
+  matcher: "/api/:path*",
 };

@@ -5,32 +5,41 @@ import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { checkRateLimit } from "@/lib/security/rateLimit";
 import { calculateFee } from "@/lib/billing/fee";
+
 const allowedOrigins = ["http://localhost:3000", "https://your-production-domain.com"];
 
-const origin = req.headers.get("origin");
+// Helper: build CORS headers per request
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("origin") || "";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": allowedOrigins.includes(origin || "") ? origin! : "http://localhost:3000",
-  "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key",
-};
+  const finalOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
 
-export async function OPTIONS() {
+  return {
+    "Access-Control-Allow-Origin": finalOrigin,
+    "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key",
+  };
+}
+
+// OPTIONS (preflight)
+export async function OPTIONS(req: Request) {
   return new Response(null, {
     status: 204,
-    headers: corsHeaders,
+    headers: getCorsHeaders(req),
   });
 }
 
+// POST
 export async function POST(req: Request) {
   try {
+    const corsHeaders = getCorsHeaders(req);
+
     let client;
     let isTestMode = false;
 
     const apiKey = req.headers.get("x-api-key");
 
     if (!apiKey) {
-      //TEST MODE
       isTestMode = true;
 
       console.log("Test mode request (no API key)");
@@ -46,9 +55,7 @@ export async function POST(req: Request) {
           callbackUrl: `${process.env.BASE_URL}/api/webhook`,
         },
       };
-      console.log("CALLBACK URL:", client.mpesa.callbackUrl);
     } else {
-      // CLIENT MODE
       client = await authenticateRequest(req);
     }
 
@@ -56,36 +63,33 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401, headers: corsHeaders });
     }
 
-    const clientId = client.id;
-    const clientRef = adminDb.collection("clients").doc(clientId);
+    // Rate limit (skip in test mode)
     if (!isTestMode) {
-      // rate limit
       const allowed = checkRateLimit(client.id);
       if (!allowed) {
-        return NextResponse.json({ message: "Too many requests" }, { status: 429 });
+        return NextResponse.json({ message: "Too many requests" }, { status: 429, headers: corsHeaders });
       }
 
-      // monthly limit
       const usage = client?.usage || {};
       if (usage.transactionCount && client.monthlyLimit && usage.transactionCount >= client.monthlyLimit) {
-        return NextResponse.json({ message: "Monthly limit reached" }, { status: 429 });
+        return NextResponse.json({ message: "Monthly limit reached" }, { status: 429, headers: corsHeaders });
       }
     }
-    // M-PESA CONFIG
+
     const mpesa = client?.mpesa;
 
     if (!mpesa?.consumerKey || !mpesa?.consumerSecret) {
-      return NextResponse.json({ message: "Client M-Pesa credentials missing" }, { status: 500 });
+      return NextResponse.json({ message: "Client M-Pesa credentials missing" }, { status: 500, headers: corsHeaders });
     }
 
     const body = await req.json();
     const { transactionType, amount } = body;
 
     if (!transactionType) {
-      return NextResponse.json({ message: "Missing transactionType" }, { status: 400 });
+      return NextResponse.json({ message: "Missing transactionType" }, { status: 400, headers: corsHeaders });
     }
 
-    // PROCESS TRANSACTION
+    // PROCESS M-PESA REQUEST
     const response = await mpesaTransactionRouter(body, mpesa);
 
     console.log("Safaricom response:", response);
@@ -96,7 +100,8 @@ export async function POST(req: Request) {
 
     const checkoutId = response.CheckoutRequestID;
     const fee = calculateFee(amount || 0);
-    //  SAVE TRANSACTION
+
+    // SAVE TRANSACTION
     await adminDb
       .collection("transactions")
       .doc(checkoutId)
@@ -112,8 +117,7 @@ export async function POST(req: Request) {
         createdAt: new Date(),
       });
 
-    // UPDATE USAGE ONLY AFTER SUCCESS
-
+    // UPDATE USAGE
     if (!isTestMode) {
       const currentMonth = new Date().toISOString().slice(0, 7);
 
@@ -137,11 +141,11 @@ export async function POST(req: Request) {
     console.error("M-Pesa transaction error:", error);
     console.error("FULL-ERROR:", error.response?.data);
 
+    const corsHeaders = getCorsHeaders(req);
+
     return NextResponse.json(
       { message: error.message || "M-Pesa transaction failed" },
-      {
-        status: 500,
-      },
+      { status: 500, headers: corsHeaders },
     );
   }
 }
