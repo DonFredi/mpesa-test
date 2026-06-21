@@ -42,7 +42,7 @@ export default function PricingClient() {
       {/* HEADER */}
       <div className="text-center mb-12">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-800">Simple, Transparent Pricing 💰</h1>
-        <p className="text-gray-600 mt-2">Choose a plan that fits your business needs</p>
+        <p className="text-gray-600 mt-2">Choose a plan that fits your business needs .</p>
 
         {/* TOGGLE */}
         <div className="mt-6 inline-flex bg-gray-200 rounded-full p-1">
