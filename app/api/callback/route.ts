@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { doc, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase/firebase"; // adjust path if needed
+import { adminDb } from "@/lib/firebase/admin";
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -42,8 +41,16 @@ export async function POST(req: Request) {
     console.log("Payment failed:", ResultDesc);
   }
 
-  // 🔥 THIS IS WHAT YOU WERE MISSING
-  await setDoc(doc(db, "transactions", CheckoutRequestID), data);
+  await adminDb
+    .collection("transactions")
+    .doc(CheckoutRequestID)
+    .set(
+      {
+        ...data,
+        updatedAt: new Date(),
+      },
+      { merge: true },
+    );
   console.log("backend callback listener;", CheckoutRequestID);
 
   return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" });
