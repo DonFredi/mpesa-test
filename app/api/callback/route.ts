@@ -44,6 +44,7 @@ export async function POST(req: Request) {
 
   // 🔥 THIS IS WHAT YOU WERE MISSING
   await setDoc(doc(db, "transactions", CheckoutRequestID), data);
+  console.log("backend callback listener;", CheckoutRequestID);
 
   return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" });
 }
